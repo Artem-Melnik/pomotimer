@@ -19,7 +19,7 @@ function App() {
     );
   }
 
-  function MyButton(tick: Function) {
+  function MyButton(counter: Counter) {
     function start() {
       timer = setInterval(tick, 1000);
       console.log('tick started', timer);

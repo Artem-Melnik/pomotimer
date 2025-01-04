@@ -5,21 +5,13 @@ import './App.css';
 
 function App() {
   let timer: NodeJS.Timeout;
-
-  function Counter() {
+  function MyButton() {
     const [count, setCount] = useState(0);
 
     function tick() {
       setCount((c) => c + 1);
     }
-    return (
-      <div>
-        <h1>{count}</h1>;
-      </div>
-    );
-  }
 
-  function MyButton(tick: Function) {
     function start() {
       timer = setInterval(tick, 1000);
       console.log('tick started', timer);
@@ -29,17 +21,22 @@ function App() {
       console.log('Stopping', timer);
       clearInterval(timer);
     }
+    return (
+      <div>
+        <h1>{count}</h1>;
     if (timer == null) {
       return <button onClick={start}>Start</button>;
     } else {
       return <button onClick={stop}>Stop</button>;
     }
+      </div>
+    );
   }
 
   return (
     <div className="App">
       <MyButton />
-      <Counter />
+
       <header className="App-header">
         <p>
           This is a test Edit <code>src/App.tsx</code> and save to reload.

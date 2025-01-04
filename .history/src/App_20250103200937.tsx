@@ -1,45 +1,40 @@
 import { useState } from 'react';
-// import reactLogo from './assets/react.svg';
-// import viteLogo from '/vite.svg';
+import reactLogo from './assets/react.svg';
+import viteLogo from '/vite.svg';
 import './App.css';
 
 function App() {
-  let timer: NodeJS.Timeout;
-
-  function Counter() {
+  function MyButton() {
+    let timer: NodeJS.Timeout;
     const [count, setCount] = useState(0);
+    //const [running, setCount] = useState(0);
 
     function tick() {
       setCount((c) => c + 1);
     }
-    return (
-      <div>
-        <h1>{count}</h1>;
-      </div>
-    );
-  }
 
-  function MyButton(tick: Function) {
-    function start() {
+    async function start() {
       timer = setInterval(tick, 1000);
-      console.log('tick started', timer);
     }
 
     function stop() {
       console.log('Stopping', timer);
       clearInterval(timer);
     }
-    if (timer == null) {
-      return <button onClick={start}>Start</button>;
-    } else {
-      return <button onClick={stop}>Stop</button>;
-    }
+
+    return (
+      <div>
+        <button onClick={start}>Start</button>
+        <button onClick={stop}>Stop</button>
+        <h1>{count}</h1>
+      </div>
+    );
   }
 
   return (
     <div className="App">
       <MyButton />
-      <Counter />
+
       <header className="App-header">
         <p>
           This is a test Edit <code>src/App.tsx</code> and save to reload.

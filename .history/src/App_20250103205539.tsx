@@ -5,7 +5,6 @@ import './App.css';
 
 function App() {
   let timer: NodeJS.Timeout;
-
   function Counter() {
     const [count, setCount] = useState(0);
 
@@ -19,7 +18,7 @@ function App() {
     );
   }
 
-  function MyButton(tick: Function) {
+  function MyButton(counter: Counter) {
     function start() {
       timer = setInterval(tick, 1000);
       console.log('tick started', timer);
