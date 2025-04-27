@@ -1,25 +1,41 @@
 import { useState } from 'react';
 import './App.css';
 import * as React from "react";
+import { CircularProgressbar } from 'react-circular-progressbar';
+import 'react-circular-progressbar/dist/styles.css';
 
-const timerSec: number = 105*60;
+enum FlowDirection {
+  CLOCKWISE ,
+  COUNTER_CLOCKWISE,
+}
 
-function Counter({ count }: { count: number }) {
+class Settings {
+  public duration: number = 1*60;
+  public circleFlowDirection: FlowDirection = FlowDirection.COUNTER_CLOCKWISE;
+}
+
+const settings: Settings = new Settings();
+
+function formatTime(sec: number) {
   function pad(num: number) {
     return String(num).padStart(2, "0");
   }
 
-  let timerStr: string = pad(count%60);
+  let timerStr: string = pad(sec%60);
 
-  if (timerSec >= 60) {
-    timerStr = pad(Math.floor(count/60)%60) + ":" + timerStr;
+  if (settings.duration >= 60) {
+    timerStr = pad(Math.floor(sec/60)%60) + ":" + timerStr;
   }
-  if (timerSec >= 60*60) {
-    timerStr = pad(Math.floor(count/(60*60))) + ":" + timerStr;
+  if (settings.duration >= 60*60) {
+    timerStr = pad(Math.floor(sec/(60*60))) + ":" + timerStr;
   }
+  return timerStr;
+}
+
+function Counter({ count }: { count: number }) {
   return (
       <div>
-        <h1>{timerStr}</h1>
+        <h1>{formatTime(count)}</h1>
       </div>
   );
 }
@@ -54,7 +70,7 @@ const MyButton: React.FC<Callback> = React.memo(({ call }) => {
 });
 
 function App() {
-  const [count, setCount] = useState(timerSec);
+  const [count, setCount] = useState(settings.duration);
 
   const tick = React.useCallback(() => {
     setCount((c) => c - 1);
@@ -64,6 +80,8 @@ function App() {
   console.log(tick);
   return (
       <div className="App">
+        <CircularProgressbar value={settings.circleFlowDirection == FlowDirection.CLOCKWISE ? settings.duration - count : count}
+                             maxValue={settings.duration} text={`${formatTime(count)}`} />
         <Counter count={count} />
         <MyButton call={tick} />
         {/*<header className="App-header">*/}
