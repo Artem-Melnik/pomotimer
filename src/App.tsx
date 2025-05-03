@@ -1,3 +1,6 @@
+// TODO: increase time after each cycle
+// TODO: implement settings page
+
 import { useState } from 'react';
 import './App.css';
 import * as React from "react";
@@ -34,7 +37,7 @@ function formatTime(sec: number) {
 
 function Counter({ count }: { count: number }) {
   return (
-      <div>
+      <div className = "absolute left-1/2 right-1/2 flex justify-center items-center">
         <h1>{formatTime(count)}</h1>
       </div>
   );
@@ -64,7 +67,7 @@ const MyButton: React.FC<Callback> = React.memo(({ call }) => {
   console.log("my button");
   return (
       <button onClick={timer === null ? start : stop}>
-        {timer === null ? 'Start' : 'Stop'}
+        {timer === null ? 'Start ▶️' : 'Pause'}
       </button>
   );
 });
@@ -80,9 +83,11 @@ function App() {
   console.log(tick);
   return (
       <div className="App">
-        <CircularProgressbar value={settings.circleFlowDirection == FlowDirection.CLOCKWISE ? settings.duration - count : count}
-                             maxValue={settings.duration} text={`${formatTime(count)}`} />
-        <Counter count={count} />
+       <div className = "flex items-center">
+         <CircularProgressbar value={settings.circleFlowDirection == FlowDirection.CLOCKWISE ? settings.duration - count : count}
+                  maxValue={settings.duration} />
+         <Counter count={count} />
+       </div>
         <MyButton call={tick} />
         {/*<header className="App-header">*/}
         {/*  <p>*/}
