@@ -30,9 +30,10 @@ import {
 } from "@/components/ui/drawer"
 
 import {FlowDirection, Settings} from "@/Settings.tsx";
+import {SessionBlock} from "@/SessionBlock.tsx";
 
 
-export function AnchorTemporaryDrawer({settings, setSettings}: {
+export function SettingsPanel({settings, setSettings}: {
     settings: Settings,
     setSettings: (settings: Settings) => void
 }) {
@@ -45,7 +46,13 @@ export function AnchorTemporaryDrawer({settings, setSettings}: {
     }
 
     function sessionCountChange(delta: number) {
-        updatedSettings.sessionCount += delta;
+        if (delta > 0) {
+            //TODO: Add another new SessionBlock (rest period) to push
+            updatedSettings.sessions.push(new SessionBlock(1, 5, "Session " + (updatedSettings.sessions.length + 1)));
+        } else {
+            //TODO: Pop two sessions (work and rest periods)
+            updatedSettings.sessions.pop();
+        }
         setSettings(updatedSettings);
     }
 
@@ -81,17 +88,17 @@ export function AnchorTemporaryDrawer({settings, setSettings}: {
                                 size="icon"
                                 className="h-8 w-8 shrink-0 rounded-full"
                                 onClick={() => sessionCountChange(-1)}
-                                disabled={updatedSettings.sessionCount <= 1}
+                                disabled={updatedSettings.sessions.length <= 1}
                             >
                                 <Minus/>
                                 <span className="sr-only">Decrease</span>
                             </Button>
                             <div className="flex-1 text-center">
                                 <div className="text-7xl font-bold tracking-tighter">
-                                    {updatedSettings.sessionCount}
+                                    {updatedSettings.sessions.length}
                                 </div>
                                 <div className="text-[0.70rem] uppercase text-muted-foreground">
-                                    {updatedSettings.sessionCount === 1 ? "Session" : "Sessions"}
+                                    {updatedSettings.sessions.length === 1 ? "Session" : "Sessions"}
                                 </div>
                             </div>
                             <Button

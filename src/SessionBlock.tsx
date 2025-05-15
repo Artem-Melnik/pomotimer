@@ -1,5 +1,11 @@
 export class SessionBlock {
-    duration: number = 25;
-    rest: number = 5;
-    task: string = "";
+    duration: number;
+    rest: number;
+    title: string;
+
+    constructor(duration: number, rest: number, title: string) {
+        this.duration = duration * 60;
+        this.rest = rest;
+        this.title = title;
+    }
 }

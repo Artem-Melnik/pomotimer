@@ -8,22 +8,24 @@ import {CircularProgressbar} from 'react-circular-progressbar';
 import 'react-circular-progressbar/dist/styles.css';
 import {Settings, FlowDirection} from "./Settings";
 import './SettingsPanel';
-import {AnchorTemporaryDrawer} from "./SettingsPanel";
+import {SettingsPanel} from "./SettingsPanel";
 import {ThemeProvider} from "@/components/theme-provider";
+import Spline from '@splinetool/react-spline';
+import {SessionBlock} from "@/SessionBlock.tsx";
 
-
-function Counter({count, settings}: { count: number, settings: Settings }) {
+function Counter({count, session}: { count: number, session: SessionBlock }) {
     function formatTime(sec: number) {
         function pad(num: number) {
             return String(num).padStart(2, "0");
         }
 
         let timerStr: string = pad(sec % 60);
+        const duration = session.duration;
 
-        if (settings.duration >= 60) {
+        if (duration >= 60) {
             timerStr = pad(Math.floor(sec / 60) % 60) + ":" + timerStr;
         }
-        if (settings.duration >= 60 * 60) {
+        if (duration >= 60 * 60) {
             timerStr = pad(Math.floor(sec / (60 * 60))) + ":" + timerStr;
         }
         return timerStr;
@@ -67,24 +69,44 @@ const MyButton: React.FC<Callback> = React.memo(({call}) => {
 
 function App() {
     const [settings, setSettings] = useState(new Settings());
-    const [count, setCount] = useState(settings.duration);
+    const [sessionIndex, setSessionIndex] = useState(0);
+    const [count, setCount] = useState(settings.sessions[sessionIndex].duration);
 
     const tick = React.useCallback(() => {
-        setCount((c) => c - 1);
-        console.log('tick');
-    }, []);
+        setCount((c) => {
+            if (c === 0) {
+                setSessionIndex((i) => (i + 1) % settings.sessions.length);
+                return settings.sessions[sessionIndex].duration;
+            } else {
+                return c - 1;
+            }
+        });
+        // setCount(count - 1);
+    }, [sessionIndex]);
 
-    console.log(tick);
+    const session = settings.sessions[sessionIndex];
+
     return (
         <ThemeProvider defaultTheme="dark" storageKey="vite-ui-theme">
+            {/*<div*/}
+            {/*    className="absolute top-0 left-0 w-full h-full z-10 size-full bg-radial-[at_50%_50%] from-sky-200/0 via-blue-400/70 to-white-900/100 to-100%"></div>*/}
+            {/*//TODO: Fix the movement down and fill in the gap at the top*/}
+            <div className="fixed inset-0 overflow-hidden">
+                <Spline
+                    className="absolute top-0 left-0 w-full h-[calc(100vh-50px)] -translate-y-[-10%] overflow-hidden"
+                    scene="https://prod.spline.design/bK4R5JDEZRZLk8Gc/scene.splinecode"/>
+            </div>
             <div className="App relative">
-                <AnchorTemporaryDrawer settings={settings} setSettings={setSettings}/>
+                <SettingsPanel settings={settings} setSettings={setSettings}/>
+                <div className="text-2xl">{session.title}</div>
                 <div className="flex items-center">
                     <CircularProgressbar
-                        value={settings.circleFlowDirection == FlowDirection.CLOCKWISE ? settings.duration - count : count}
-                        maxValue={settings.duration}/>
-                    <Counter count={count} settings={settings}/>
+                        value={settings.circleFlowDirection == FlowDirection.CLOCKWISE ? session.duration - count : count}
+                        maxValue={session.duration}/>
+                    <Counter count={count} session={session}/>
                 </div>
+                {/*TODO: Add multiple progress bars and make them fully green after the session is completed.*/}
+                <progress className="block" value={session.duration - count} max={session.duration}/>
                 <MyButton call={tick}/>
                 {/*<header className="App-header">*/}
                 {/*  <p>*/}

@@ -1,7 +1,10 @@
+import {SessionBlock} from "@/SessionBlock.tsx";
+
 export class Settings {
-    public duration: number = 1 * 60;
     public circleFlowDirection: FlowDirection = FlowDirection.COUNTER_CLOCKWISE;
-    public sessionCount: number = 4;
+    //TODO: Remove the rest variable from SessionBlock
+    //TODO: Add a new SessionBlock that will be a rest period after each session by adding a 2nd new SessionBlock(5, 5, "Rest");
+    public sessions: SessionBlock[] = [new SessionBlock(1, 5, "Session 1")];
 }
 
 export enum FlowDirection {
