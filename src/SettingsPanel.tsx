@@ -1,18 +1,3 @@
-// import * as React from 'react';
-// import Box from '@mui/material/Box';
-// import Drawer from '@mui/material/Drawer';
-// import Button from '@mui/material/Button';
-// import List from '@mui/material/List';
-// import Divider from '@mui/material/Divider';
-// import ListItem from '@mui/material/ListItem';
-// import ListItemButton from '@mui/material/ListItemButton';
-// import ListItemIcon from '@mui/material/ListItemIcon';
-// import ListItemText from '@mui/material/ListItemText';
-// import SettingsIcon from '@mui/icons-material/Settings';
-
-// import InboxIcon from '@mui/icons-material/MoveToInbox';
-// import MailIcon from '@mui/icons-material/Mail';
-
 import {Minus, Plus} from "lucide-react"
 
 import {Button} from "@/components/ui/button"
@@ -29,17 +14,11 @@ import {
     DrawerTrigger,
 } from "@/components/ui/drawer"
 
-import {
-    InputOTP,
-    InputOTPGroup,
-    // InputOTPSeparator,
-    InputOTPSlot,
-} from "@/components/ui/input-otp"
 
 import {FlowDirection, Settings} from "@/Settings.tsx";
 import {SessionBlock} from "@/SessionBlock.tsx";
 import {ModeToggle} from "@/components/mode-toggle.tsx";
-import {useState} from "react";
+import TimeDurationInput from "@/components/ui/TimeDurationInput.tsx";
 
 enum ChangeType {
     DECREASE,
@@ -50,10 +29,23 @@ export function SettingsPanel({settings, setSettings}: {
     settings: Settings,
     setSettings: (settings: Settings) => void
 }) {
-    // const [goal, setGoal] = React.useState(350)
     const updatedSettings = Object.assign({}, settings);
-    const [sessionLength, setSessionLength] = useState("");
-    const [breakLength, setBreakLength] = useState("");
+
+    function setSessionLength(sessionLength: number) {
+        // Rest is every other session starting from 0
+        for (let i = 0; i < updatedSettings.sessions.length; i+= 2) {
+            updatedSettings.sessions[i].duration = sessionLength; // in secs
+        }
+        setSettings(updatedSettings);
+    }
+
+    function setBreakLength(restLength: number) {
+        // Rest is every other session starting from 1
+        for (let i = 1; i < updatedSettings.sessions.length; i+= 2) {
+            updatedSettings.sessions[i].duration = restLength; // in secs
+        }
+        setSettings(updatedSettings);
+    }
 
     function flowChange(selectedFlow: string) {
         updatedSettings.circleFlowDirection = selectedFlow as FlowDirection;
@@ -64,7 +56,10 @@ export function SettingsPanel({settings, setSettings}: {
         if (changeType === ChangeType.INCREASE) {
             //TODO: Fix counter for settings panel. It currently adds two sessions when you try to add one session with a rest period
             //TODO: Add another new SessionBlock (rest period) to push
-            updatedSettings.sessions.push(new SessionBlock(10, "Session " + (updatedSettings.sessions.length / 2 + 1)), new SessionBlock(5, "Rest"));
+            updatedSettings.sessions.push(
+                // All sessions are of the same duration
+                new SessionBlock(updatedSettings.sessions[0].duration, "Session " + (updatedSettings.sessions.length / 2 + 1)),
+                new SessionBlock(updatedSettings.sessions[1].duration, "Rest"));
         } else if (changeType === ChangeType.DECREASE) {
             //TODO: Website crashes when trying to remove 2 sessions; should not allow removing when 1
             //TODO: Pop two sessions (work and rest periods)
@@ -131,7 +126,6 @@ export function SettingsPanel({settings, setSettings}: {
                                     size="icon"
                                     className="h-8 w-8 shrink-0 rounded-full"
                                     onClick={() => sessionCountChange(ChangeType.INCREASE)}
-                                    // disabled={goal >= 100}
                                 >
                                     <Plus/>
                                     <span className="sr-only">Increase</span>
@@ -141,40 +135,19 @@ export function SettingsPanel({settings, setSettings}: {
                         <div className="bg-secondary max-w m-2 p-4 rounded-xl">
                             <div className="grid w-full max-w-sm items-center gap-1.5">
                                 <Label htmlFor="sessionLength">Session Length</Label>
-                                {/*TODO: Add functionality to change session and break length, update settings/sessionBlock accordingly*/}
-                                <InputOTP value={sessionLength} onChange={(sessionLength) => {
+                                <TimeDurationInput value={settings.sessions[0].duration} onChange={(sessionLength) => {
                                     setSessionLength(sessionLength);
                                     console.log(sessionLength);
-                                }} maxLength={4}>
-                                    <InputOTPGroup>
-                                        <InputOTPSlot index={0}/>
-                                        <InputOTPSlot index={1}/>
-                                    </InputOTPGroup>
-                                    :
-                                    <InputOTPGroup>
-                                        <InputOTPSlot index={2}/>
-                                        <InputOTPSlot index={3}/>
-                                    </InputOTPGroup>
-                                </InputOTP>
+                                }}/>
                             </div>
                         </div>
                         <div className="bg-secondary max-w m-2 p-4 rounded-xl">
                             <div className="grid w-full max-w-sm items-center gap-1.5">
                                 <Label htmlFor="breakLength">Break Length</Label>
-                                <InputOTP value={breakLength} onChange={(breakLength) => {
+                                <TimeDurationInput value={settings.sessions[1].duration} onChange={(breakLength) => {
                                     setBreakLength(breakLength);
                                     console.log(breakLength);
-                                }} maxLength={4}>
-                                    <InputOTPGroup>
-                                        <InputOTPSlot index={0}/>
-                                        <InputOTPSlot index={1}/>
-                                    </InputOTPGroup>
-                                    :
-                                    <InputOTPGroup>
-                                        <InputOTPSlot index={2}/>
-                                        <InputOTPSlot index={3}/>
-                                    </InputOTPGroup>
-                                </InputOTP>
+                                }}/>
                             </div>
                         </div>
                     </div>
@@ -191,79 +164,3 @@ export function SettingsPanel({settings, setSettings}: {
         </Drawer>
     )
 }
-
-
-// type Anchor = 'top' | 'left' | 'bottom' | 'right';
-//
-// export default function AnchorTemporaryDrawer() {
-//     const [state, setState] = React.useState({
-//         top: false,
-//         left: false,
-//         bottom: false,
-//         right: false,
-//     });
-//
-//     const toggleDrawer =
-//         (anchor: Anchor, open: boolean) =>
-//             (event: React.KeyboardEvent | React.MouseEvent) => {
-//                 if (
-//                     event.type === 'keydown' &&
-//                     ((event as React.KeyboardEvent).key === 'Tab' ||
-//                         (event as React.KeyboardEvent).key === 'Shift')
-//                 ) {
-//                     return;
-//                 }
-//
-//                 setState({...state, [anchor]: open});
-//             };
-//
-//     const list = (anchor: Anchor) => (
-//         <Box
-//             sx={{width: anchor === 'top' || anchor === 'bottom' ? 'auto' : 250}}
-//             role="presentation"
-//             onClick={toggleDrawer(anchor, false)}
-//             onKeyDown={toggleDrawer(anchor, false)}
-//         >
-//             <List>
-//                 {['Inbox', 'Starred', 'Send email', 'Drafts'].map((text) => (
-//                     <ListItem key={text} disablePadding>
-//                         <ListItemButton>
-//                             <ListItemIcon>
-//                                 {/*{index % 2 === 0 ? <InboxIcon /> : <MailIcon />}*/}
-//                             </ListItemIcon>
-//                             <ListItemText primary={text}/>
-//                         </ListItemButton>
-//                     </ListItem>
-//                 ))}
-//             </List>
-//             <Divider/>
-//             <List>
-//                 {['All mail', 'Trash', 'Spam'].map((text) => (
-//                     <ListItem key={text} disablePadding>
-//                         <ListItemButton>
-//                             <ListItemIcon>
-//                                 {/*{index % 2 === 0 ? 'Text': <MailIcon />}*/}
-//                             </ListItemIcon>
-//                             <ListItemText primary={text}/>
-//                         </ListItemButton>
-//                     </ListItem>
-//                 ))}
-//             </List>
-//         </Box>
-//     );
-//     const anchor = 'right' as Anchor;
-//     return (
-//         <div>
-//             <React.Fragment key={anchor}>
-//                 <Button onClick={toggleDrawer(anchor, true)}><SettingsIcon className=""/></Button>
-//                 <Drawer
-//                     anchor={anchor}
-//                     open={state[anchor]}
-//                     onClose={toggleDrawer(anchor, false)}
-//                 >
-//                     {list(anchor)}
-//                 </Drawer>
-//             </React.Fragment>
-//         </div>
-//     );
-// }
