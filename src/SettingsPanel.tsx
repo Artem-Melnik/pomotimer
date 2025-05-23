@@ -29,9 +29,22 @@ import {
     DrawerTrigger,
 } from "@/components/ui/drawer"
 
+import {
+    InputOTP,
+    InputOTPGroup,
+    // InputOTPSeparator,
+    InputOTPSlot,
+} from "@/components/ui/input-otp"
+
 import {FlowDirection, Settings} from "@/Settings.tsx";
 import {SessionBlock} from "@/SessionBlock.tsx";
+import {ModeToggle} from "@/components/mode-toggle.tsx";
+import {useState} from "react";
 
+enum ChangeType {
+    DECREASE,
+    INCREASE,
+}
 
 export function SettingsPanel({settings, setSettings}: {
     settings: Settings,
@@ -39,18 +52,23 @@ export function SettingsPanel({settings, setSettings}: {
 }) {
     // const [goal, setGoal] = React.useState(350)
     const updatedSettings = Object.assign({}, settings);
+    const [sessionLength, setSessionLength] = useState("");
+    const [breakLength, setBreakLength] = useState("");
 
     function flowChange(selectedFlow: string) {
         updatedSettings.circleFlowDirection = selectedFlow as FlowDirection;
         setSettings(updatedSettings);
     }
 
-    function sessionCountChange(delta: number) {
-        if (delta > 0) {
+    function sessionCountChange(changeType: ChangeType) {
+        if (changeType === ChangeType.INCREASE) {
+            //TODO: Fix counter for settings panel. It currently adds two sessions when you try to add one session with a rest period
             //TODO: Add another new SessionBlock (rest period) to push
-            updatedSettings.sessions.push(new SessionBlock(1, 5, "Session " + (updatedSettings.sessions.length + 1)));
-        } else {
+            updatedSettings.sessions.push(new SessionBlock(10, "Session " + (updatedSettings.sessions.length / 2 + 1)), new SessionBlock(5, "Rest"));
+        } else if (changeType === ChangeType.DECREASE) {
+            //TODO: Website crashes when trying to remove 2 sessions; should not allow removing when 1
             //TODO: Pop two sessions (work and rest periods)
+            updatedSettings.sessions.pop();
             updatedSettings.sessions.pop();
         }
         setSettings(updatedSettings);
@@ -58,9 +76,9 @@ export function SettingsPanel({settings, setSettings}: {
 
     return (
         <Drawer direction="right">
-            <DrawerTrigger className="absolute -top-10 right-0" asChild>
+            <DrawerTrigger className="absolute top-3 right-3 rounded-full" asChild>
                 <Button variant={"transparent"} size={"square"}>
-                    <span className="material-icons-rounded">settings</span>
+                    <span className="text-foreground material-icons-rounded">settings</span>
                 </Button>
             </DrawerTrigger>
             <DrawerContent>
@@ -68,8 +86,13 @@ export function SettingsPanel({settings, setSettings}: {
                     <DrawerHeader>
                         <DrawerTitle>Settings</DrawerTitle>
                     </DrawerHeader>
-                    <div className="p-4 pb-0">
-                        <RadioGroup defaultValue="option-one" onValueChange={flowChange}>
+                    {/*TODO: Figure out why ModeToggle does not switch theme automatically when the system theme is selected; it currently requires a page refresh to switch*/}
+                    <div className="bg-secondary max-w mx-2 p-4 rounded-xl">
+                        <ModeToggle/>
+                    </div>
+                    <div className="bg-secondary max-w m-2 p-4 rounded-xl">
+                        {/*TODO: Make defaultValue checked initially (https://stackoverflow.com/questions/76669396/shadcn-radiobutton-not-checked-despite-changed-value-from-react-hook-form)*/}
+                        <RadioGroup defaultValue="option-two" onValueChange={flowChange}>
                             <Label>Progress Direction</Label>
                             <div className="flex items-center space-x-2">
                                 <RadioGroupItem value="cw" id="option-one"/>
@@ -81,39 +104,81 @@ export function SettingsPanel({settings, setSettings}: {
                             </div>
                         </RadioGroup>
                     </div>
-                    <div className="p-4 pb-0">
-                        <div className="flex items-center justify-center space-x-2">
-                            <Button
-                                variant="outline"
-                                size="icon"
-                                className="h-8 w-8 shrink-0 rounded-full"
-                                onClick={() => sessionCountChange(-1)}
-                                disabled={updatedSettings.sessions.length <= 1}
-                            >
-                                <Minus/>
-                                <span className="sr-only">Decrease</span>
-                            </Button>
-                            <div className="flex-1 text-center">
-                                <div className="text-7xl font-bold tracking-tighter">
-                                    {updatedSettings.sessions.length}
+                    <div>
+                        <div className="bg-secondary max-w m-2 p-4 rounded-xl">
+                            <Label htmlFor="numberOfSessions">Number of Sessions</Label>
+                            <div className="flex items-center justify-center space-x-2">
+                                <Button
+                                    variant="outline"
+                                    size="icon"
+                                    className="h-8 w-8 shrink-0 rounded-full"
+                                    onClick={() => sessionCountChange(ChangeType.DECREASE)}
+                                    disabled={updatedSettings.sessions.length <= 2}
+                                >
+                                    <Minus/>
+                                    <span className="sr-only">Decrease</span>
+                                </Button>
+                                <div className="flex-1 text-center">
+                                    <div className="text-7xl font-bold tracking-tighter">
+                                        {updatedSettings.sessions.length / 2}
+                                    </div>
+                                    <div className="text-[0.70rem] uppercase text-foreground">
+                                        {updatedSettings.sessions.length === 2 ? "Session" : "Sessions"}
+                                    </div>
                                 </div>
-                                <div className="text-[0.70rem] uppercase text-muted-foreground">
-                                    {updatedSettings.sessions.length === 1 ? "Session" : "Sessions"}
-                                </div>
+                                <Button
+                                    variant="outline"
+                                    size="icon"
+                                    className="h-8 w-8 shrink-0 rounded-full"
+                                    onClick={() => sessionCountChange(ChangeType.INCREASE)}
+                                    // disabled={goal >= 100}
+                                >
+                                    <Plus/>
+                                    <span className="sr-only">Increase</span>
+                                </Button>
                             </div>
-                            <Button
-                                variant="outline"
-                                size="icon"
-                                className="h-8 w-8 shrink-0 rounded-full"
-                                onClick={() => sessionCountChange(1)}
-                                // disabled={goal >= 100}
-                            >
-                                <Plus/>
-                                <span className="sr-only">Increase</span>
-                            </Button>
                         </div>
-                        <div className="mt-3 h-[120px]">
+                        <div className="bg-secondary max-w m-2 p-4 rounded-xl">
+                            <div className="grid w-full max-w-sm items-center gap-1.5">
+                                <Label htmlFor="sessionLength">Session Length</Label>
+                                {/*TODO: Add functionality to change session and break length, update settings/sessionBlock accordingly*/}
+                                <InputOTP value={sessionLength} onChange={(sessionLength) => {
+                                    setSessionLength(sessionLength);
+                                    console.log(sessionLength);
+                                }} maxLength={4}>
+                                    <InputOTPGroup>
+                                        <InputOTPSlot index={0}/>
+                                        <InputOTPSlot index={1}/>
+                                    </InputOTPGroup>
+                                    :
+                                    <InputOTPGroup>
+                                        <InputOTPSlot index={2}/>
+                                        <InputOTPSlot index={3}/>
+                                    </InputOTPGroup>
+                                </InputOTP>
+                            </div>
                         </div>
+                        <div className="bg-secondary max-w m-2 p-4 rounded-xl">
+                            <div className="grid w-full max-w-sm items-center gap-1.5">
+                                <Label htmlFor="breakLength">Break Length</Label>
+                                <InputOTP value={breakLength} onChange={(breakLength) => {
+                                    setBreakLength(breakLength);
+                                    console.log(breakLength);
+                                }} maxLength={4}>
+                                    <InputOTPGroup>
+                                        <InputOTPSlot index={0}/>
+                                        <InputOTPSlot index={1}/>
+                                    </InputOTPGroup>
+                                    :
+                                    <InputOTPGroup>
+                                        <InputOTPSlot index={2}/>
+                                        <InputOTPSlot index={3}/>
+                                    </InputOTPGroup>
+                                </InputOTP>
+                            </div>
+                        </div>
+                    </div>
+                    <div className="mt-3 h-[120px]">
                     </div>
                     <DrawerFooter>
                         <Button>Submit</Button>

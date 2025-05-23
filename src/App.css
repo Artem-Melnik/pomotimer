@@ -160,7 +160,7 @@
         @apply border-border outline-ring/50;
     }
 
-    /*body {*/
-    /*    @apply text-foreground;*/
-    /*}*/
+    body {
+        @apply text-foreground;
+    }
 }
