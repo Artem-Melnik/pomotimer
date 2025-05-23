@@ -31,6 +31,7 @@
     "react-circular-progressbar": "^2.2.0",
     "react-dom": "^18.3.1",
     "react-list-player": "^1.0.6",
+    "react-modern-audio-player": "^1.4.0-rc.2",
     "tailwind-merge": "^3.2.0",
     "vaul": "^1.1.2"
   },
