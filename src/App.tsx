@@ -18,9 +18,7 @@ import {SessionBlock} from "@/SessionBlock.tsx";
 import * as ProgressPrimitive from "@radix-ui/react-progress"
 import {clsx} from "clsx";
 import alarmSound from "./assets/ringtone-alarm-spacey_152bpm_F_major.wav"
-import {MusicPlayer} from './MusicPlayer';
-
-// import {MusicPlayer} from "@/MusicPlayer.tsx";
+import {Player} from './AudioPlayer';
 
 function Counter({count, session}: { count: number, session: SessionBlock }) {
     function formatTime(sec: number) {
@@ -48,14 +46,16 @@ function Counter({count, session}: { count: number, session: SessionBlock }) {
 }
 
 type Callback = {
-    call: () => void;
+    call: () => void,
+    stop: () => void,
+    start: () => void
 };
 
-const MyButton: React.FC<Callback> = React.memo(({call}) => {
+function MyButton({callback}: {callback: Callback}) {
     const [timer, setTimer] = useState<NodeJS.Timeout | null>(null);
 
     function start() {
-        const interval = setInterval(call, 1000);
+        const interval = setInterval(callback.call, 1000);
         setTimer(interval);
         console.log('tick started', interval);
     }
@@ -67,6 +67,9 @@ const MyButton: React.FC<Callback> = React.memo(({call}) => {
             console.log('tick stopped');
         }
     }
+
+    callback.start = start;
+    callback.stop = stop;
 
     console.log("my button");
     return (
@@ -85,17 +88,20 @@ const MyButton: React.FC<Callback> = React.memo(({call}) => {
             )}
         </button>
     );
-});
+}
 
 function App() {
     const [settings, setSettings] = useState(new Settings());
     const [sessionIndex, setSessionIndex] = useState(0);
     const sessionIndexRef = React.useRef(sessionIndex);
     const [count, setCount] = useState(settings.sessions[sessionIndex].duration);
+    // const [playMusic, setPlayMusic] = useState(true);
 
     // TODO: Make alarm sounds different for session and break
     function playAudio() {
-        new Audio(alarmSound).play()
+        // setPlayMusic(false);
+        callback.stop();
+        new Audio(alarmSound).play();
     }
 
     const tick = React.useCallback(() => {
@@ -114,7 +120,20 @@ function App() {
         // setCount(count - 1);
     }, [sessionIndex]);
 
+    const [callback, setCallback] = useState<Callback>({
+        call: tick,
+        stop: () => {},
+        start: () => {}
+    });
     const session = settings.sessions[sessionIndex];
+
+    function updateSettings(settings: Settings) {
+        setSettings(settings);
+        if (settings.sessions[sessionIndex%1].duration < count) {
+            // Session duration decreased to lower than the current count - decrease it accordingly
+            setCount(settings.sessions[sessionIndex%1].duration);
+        }
+    }
 
     return (
         <ThemeProvider defaultTheme="dark" storageKey="vite-ui-theme">
@@ -122,24 +141,24 @@ function App() {
             {/*    className="absolute top-0 left-0 w-full h-full z-10 size-full bg-radial-[at_50%_50%] from-sky-200/0 via-blue-400/70 to-white-900/100 to-100%"></div>*/}
             {/*//TODO: Fix the movement down and fill in the gap at the top*/}
             {/*TODO: Add z-[-10] here to fix music player */}
-            <div className="fixed inset-0 overflow-hidden">
+            <div className="fixed inset-0 overflow-hidden h-[calc(100vh+100px)] -translate-y-[10%]">
                 {/*TODO: Make background switch automatically based on theme; use React conditional rendering*/}
                 {/*Light theme background*/}
                 <Spline
                     className="absolute top-0 left-0 w-full h-[calc(100vh-50px)] -translate-y-[-10%] overflow-hidden"
-                    scene="https://prod.spline.design/bK4R5JDEZRZLk8Gc/scene.splinecode"/>
+                    scene="scene.splinecode"/>
                 {/*Dark theme background*/}
                 {/*<Spline*/}
                 {/*    className="absolute top-0 left-0 w-full h-[calc(100vh-50px)] -translate-y-[-10%] overflow-hidden"*/}
                 {/*    scene="https://prod.spline.design/lfNreZWD7x3jEdh0/scene.splinecode"/>*/}
             </div>
+            <Player play={undefined}/>
             {/*<div className="bg-black">*/}
-            <MusicPlayer/>
             {/*</div>*/}
-            <div className="App relative flex flex-shrink-0">
+            <div className="App relative flex flex-col content-center resize flex-shrink-0">
                 <div
-                    className="center_surface aspect-square object-contain w-3/4 h-3/4 md:w-full md:h-full bg-background/70 shadow-[0px_0px_50px_10px_rgba(62,152,199,0.25)] backdrop-blur-xs rounded-3xl border border-[#3e98c7]">
-                    <SettingsPanel settings={settings} setSettings={setSettings}/>
+                    className="aspect-square object-contain bg-background/70 shadow-[0px_0px_50px_10px_rgba(62,152,199,0.25)] backdrop-blur-xs rounded-3xl border border-[#3e98c7]">
+                    <SettingsPanel settings={settings} setSettings={updateSettings}/>
                     <div className="text-foreground text-2xl mt-5">{session.title}</div>
                     <div className="flex flex-shrink-0 items-center aspect-square p-10 m-5">
                         <CircularProgressbar
@@ -147,38 +166,40 @@ function App() {
                             maxValue={session.duration}/>
                         <Counter count={count} session={session}/>
                     </div>
-                    {/*TODO: Add multiple progress bars and make them fully green after the session is completed.*/}
-                    <div className="flex w-100 mx-5 my-5 mb-10">
-                        {settings.sessions.map((session, index) => {
-                            const width = session.duration;// Math.floor(session.duration / sessionTotalLength);
-                            let value = 0;
-                            const progressColor = index % 2 === 0 ? "bg-sky-500" : "bg-green-500";
-                            const progressBgColor = index % 2 === 0 ? "bg-sky-200" : "bg-green-200";
-                            if (index === sessionIndex) {
-                                value = (session.duration - count) / session.duration * 100;
-                            } else if (index < sessionIndex) {
-                                value = 100;
-                            }
-                            return (
-                                //TODO: move flex into clsx progress
-                                <div style={{'flex': width}} className="p-1">
-                                    <ProgressPrimitive.Root
-                                        data-slot="progress"
-                                        className={clsx(progressBgColor, "relative h-2 overflow-hidden rounded-full")}>
-                                        <ProgressPrimitive.Indicator
-                                            data-slot="progress-indicator"
-                                            // className="bg-red-500 h-full flex-1 transition-all rounded-full transition-[stroke-dashoffset] duration-500 ease-in-out"
-                                            className={clsx(progressColor, "h-full flex-1 transition-all rounded-full transition-[stroke-dashoffset] duration-500 ease-in-out")}
-                                            style={{transform: `translateX(-${100 - (value || 0)}%)`}}
-                                        />
-                                    </ProgressPrimitive.Root>
-                                </div>);
-                        })}
-                    </div>
-                    {/*<Progress value={session.duration - count} max={session.duration}/>*/}
-                    {/*<div className="text-white font-['Inter'] text-[1.5625rem] font-medium leading-[normal]">Start*/}
-                    {/*</div>*/}
-                    <MyButton call={tick}/>
+                </div>
+                {/*TODO: Add multiple progress bars and make them fully green after the session is completed.*/}
+                <div className="flex mx-5 my-5 mb-10">
+                    {settings.sessions.map((session, index) => {
+                        const width = session.duration;// Math.floor(session.duration / sessionTotalLength);
+                        let value = 0;
+                        const progressColor = index % 2 === 0 ? "bg-sky-500" : "bg-green-500";
+                        const progressBgColor = index % 2 === 0 ? "bg-sky-200" : "bg-green-200";
+                        if (index === sessionIndex) {
+                            value = (session.duration - count) / session.duration * 100;
+                        } else if (index < sessionIndex) {
+                            value = 100;
+                        }
+                        return (
+                            //TODO: move flex into clsx progress
+                            <div style={{'flex': width}} className="p-1">
+                                <ProgressPrimitive.Root
+                                    data-slot="progress"
+                                    className={clsx(progressBgColor, "relative h-2 overflow-hidden rounded-full")}>
+                                    <ProgressPrimitive.Indicator
+                                        data-slot="progress-indicator"
+                                        // className="bg-red-500 h-full flex-1 transition-all rounded-full transition-[stroke-dashoffset] duration-500 ease-in-out"
+                                        className={clsx(progressColor, "h-full flex-1 transition-all rounded-full transition-[stroke-dashoffset] duration-500 ease-in-out")}
+                                        style={{transform: `translateX(-${100 - (value || 0)}%)`}}
+                                    />
+                                </ProgressPrimitive.Root>
+                            </div>);
+                    })}
+                </div>
+                {/*<Progress value={session.duration - count} max={session.duration}/>*/}
+                {/*<div className="text-white font-['Inter'] text-[1.5625rem] font-medium leading-[normal]">Start*/}
+                {/*</div>*/}
+                <div>
+                    <MyButton callback={callback}/>
                 </div>
                 {/*<header className="App-header">*/}
                 {/*  <p>*/}

@@ -15,20 +15,21 @@ const testListInfo: listInfo = {
 
 // The following test array has type Track which is defined in the ListPlayer file
 const testTracks: track[] = [{
-    src: "https://file-examples.com/storage/fe15fd9e66682b77ba42822/2017/11/file_example_MP3_700KB.mp3",
+    src: "https://cdn.pixabay.com/download/audio/2025/05/21/audio_fa20813ea6.mp3?filename=jungle-waves-drumampbass-electronic-inspiring-promo-345013.mp3",
     title: [
         {
             type: 'text',
-            content: 'Smoke',
+            // style: {color: "red"},
+            content: 'Jungle Waves (Drum&Bass Electronic Inspiring Promo)',
             className: 'title'
         }
     ],
     artist: [
         {
             type: 'text',
-            content: 'Oleg Fedak',
+            content: 'DIMMYSAD',
             className: 'artist',
-            link: 'https://pixabay.com/users/soulprodmusic-30064790/'
+            link: 'https://pixabay.com/users/dimmysad-48986751/'
         }
     ],
     album: [
@@ -38,39 +39,34 @@ const testTracks: track[] = [{
             className: 'album'
         }
     ],
-    duration: "1:58",
-    imageSrc: "https://cdn.pixabay.com/audio/2023/03/19/12-27-22-207_200x200.jpg"
+    duration: "2:11",
+    imageSrc: "https://cdn.pixabay.com/audio/2025/05/21/12-47-01-748_200x200.jpg"
 }, {
-    src: "https://file-examples.com/storage/fe15fd9e66682b77ba42822/2017/11/file_example_MP3_700KB.mp3",
+    src: "https://cdn.pixabay.com/download/audio/2025/03/19/audio_56ae1dae5f.mp3?filename=gorila-315977.mp3",
     title: [
         {
             type: 'text',
-            content: 'My Universe',
+            content: 'Gorila',
             className: 'title'
         },
-        {
-            type: 'badge',
-            content: 'New',
-            className: 'new'
-        }
     ],
     artist: [
         {
             type: 'text',
-            content: 'Peter Nesterouk',
+            content: 'Alex_MakeMusic',
             className: 'artist',
-            link: 'https://pixabay.com/users/nesterouk-34392616/'
+            link: 'https://pixabay.com/users/alex_makemusic-24186663/'
         }
     ],
     album: [
-        {
-            type: 'text',
-            content: 'Nesterouk',
-            className: 'album'
-        }
+        // {
+        //     type: 'text',
+        //     content: 'Nesterouk',
+        //     className: 'album'
+        // }
     ],
-    duration: "2:27",
-    imageSrc: "https://cdn.pixabay.com/audio/2023/04/24/09-30-22-297_200x200.jpg"
+    duration: "1:55",
+    imageSrc: "https://cdn.pixabay.com/audio/2025/03/19/20-23-35-428_200x200.png"
 },
 ]; // array of track objects needed populate the playlist rows with
 
@@ -94,8 +90,8 @@ export function MusicPlayer() {
     return (
         <ListPlayerContext.Provider
             value={{selectedTrack, setSelectedTrack, isPlaying, setIsPlaying, isMuted, setIsMuted}}>
-            <div className='container-for-sizing-player'>
-                <ListPlayer
+            <div className='container-for-sizing-player mb-5'>
+                <ListPlayer //playerMode={'miniplayer'}
                     tracks={testTracks}
                     listInfo={testListInfo}
                     playCallback={handleOnPlay}
